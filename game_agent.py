@@ -400,26 +400,25 @@ class AlphaBetaPlayer(IsolationPlayer):
                 each helper function or else your agent will timeout during
                 testing.
         """
+        
+
+        # TODO: finish this function    
         legal_moves = game.get_legal_moves()
-        if self.time_left() < self.TIMER_THRESHOLD:
-            if not legal_moves:
+        if not legal_moves:
                 return (-1, -1)
-            else:
-                best_move = legal_moves[0]
 
-        # TODO: finish this function
-
-        #if you are the active player you maximize
         best_score = float("-inf")
-        best_move = None
-        for m in game.get_legal_moves():
-            v = self.min_value(game.forecast_move(m), alpha, beta, depth)
-            #print('m->', m, 'v->', v, 'best_score-> ', best_score)
-            if v > best_score:
-                best_score = v
-                best_move = m
+        best_move = legal_moves[0]
+        for m in legal_moves:
+            if self.time_left() > self.TIMER_THRESHOLD:
+                v = self.min_value(game.forecast_move(m), alpha, beta, depth)
+        #print('m->', m, 'v->', v, 'best_score-> ', best_score)
+                if v > best_score:
+                    best_score = v
+                    best_move = m
+                else:
+                    best_move = best_move
             else:
-                best_move = legal_moves[0]
-
-        #print ('best move ->', best_move)
+                legal_moves[0]
+        #print ('best move ->', best_move, self.time_left(), self.TIMER_THRESHOLD)
         return best_move
