@@ -43,8 +43,8 @@ def custom_score(game, player):
 
     own_moves = game.get_legal_moves(player)
     opp_moves = game.get_legal_moves(game.get_opponent(player))
-    own_mobility = float(sum([len(game.__get_moves(move)) for move in own_moves ]))
-    opp_mobility = float(sum([len(game.__get_moves(move)) for move in opp_moves ]))
+    own_mobility = len([game.forecast_move(move) for move in own_moves])
+    opp_mobility = len([game.forecast_move(move) for move in opp_moves])
     return own_mobility - opp_mobility + len(own_moves) - len(opp_moves)
 
 
@@ -71,15 +71,16 @@ def custom_score_2(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
+
     if game.is_loser(player):
         return float("-inf")
 
     if game.is_winner(player):
         return float("inf")
 
-    own_moves = len(game.__get_moves(player))
-    opp_moves = len(game.__get_moves(game.get_opponent(player)))
-    return float(own_moves - (opp_moves * 2))
+    own_moves = game.get_legal_moves(player)
+    opp_moves = game.get_legal_moves(game.get_opponent(player))
+    return len(own_moves) - len(opp_moves)
 
 
 def custom_score_3(game, player):
@@ -113,10 +114,9 @@ def custom_score_3(game, player):
 
     own_moves = game.get_legal_moves(player)
     opp_moves = game.get_legal_moves(game.get_opponent(player))
-    # Sum the available moves for each legal move.
-    own_mobility = float(sum([len(game.forecast_move(move)) for move in own_moves ]))
-    opp_mobility = float(sum([len(game.forecast_move(move)) for move in opp_moves ]))
-    return (len(own_moves) * own_mobility) - (len(opp_moves) * opp_mobility)
+    own_mobility = len([game.forecast_move(move) for move in own_moves])
+    opp_mobility = len([game.forecast_move(move) for move in opp_moves])
+    return own_mobility*len(own_moves) - opp_mobility*len(opp_moves)
 
 
 class IsolationPlayer:
@@ -258,25 +258,22 @@ class MinimaxPlayer(IsolationPlayer):
         """
         # TODO: finish this function!
         legal_moves = game.get_legal_moves()
-        if self.time_left() < self.TIMER_THRESHOLD:
-            if not legal_moves:
+        if not legal_moves:
                 return (-1, -1)
-            else:
-                best_move = legal_moves[0]
 
         best_score = float("-inf")
-        best_move = None
-        for m in game.get_legal_moves():
-            v = self.min_value(game.forecast_move(m), depth)
-            #print('m->', m, 'v->', v, 'best_score-> ', best_score)
-            if v > best_score:
-                best_score = v
-                best_move = m
+        best_move = legal_moves[0]
+        for m in legal_moves:
+            if self.time_left() > self.TIMER_THRESHOLD:
+                v = self.min_value(game.forecast_move(m), depth)
+        #print('m->', m, 'v->', v, 'best_score-> ', best_score)
+                if v > best_score:
+                    best_score = v
+                    best_move = m
             else:
-                best_move = legal_moves[0]
-        #print ('minimax active best move ->', best_move, best_score, v)
+                best_move
+        #print ('best move ->', best_move, self.time_left(), self.TIMER_THRESHOLD)
         return best_move
-
 
 
 class AlphaBetaPlayer(IsolationPlayer):
@@ -329,30 +326,33 @@ class AlphaBetaPlayer(IsolationPlayer):
 
 
     def min_value(self, game, alpha, beta, depth):
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
         if depth == 0:
             return self.score(game, self)
         v = float("inf")
         for m in game.get_legal_moves():
-            v = min(v, self.max_value(game.forecast_move(m), alpha, beta, depth-1 ))
-            #compare if score is smaller than alpa    
-            if v<= alpha:
-                return v
-            #compare score with beta and assign minimum value
-            beta = min(beta, v)
+            if self.time_left() > self.TIMER_THRESHOLD:
+                v = min(v, self.max_value(game.forecast_move(m), alpha, beta, depth-1 ))
+                #compare if score is smaller than alpa    
+                if v<= alpha:
+                    return v
+                #compare score with beta and assign minimum value
+                beta = min(beta, v)
         return v
 
     def max_value(self, game, alpha, beta, depth):
-        
         if depth == 0:
             return self.score(game, self)
         v = float("-inf")
         for m in game.get_legal_moves():
-            v = max(v, self.min_value(game.forecast_move(m), alpha, beta, depth-1))
+            if self.time_left() > self.TIMER_THRESHOLD:
+                v = max(v, self.min_value(game.forecast_move(m), alpha, beta, depth-1))
             #when maximising compare if score is bigger than alpa   
-            if v>= alpha:
-                return v
-            #compare score with beta and assign minimum value
-            beta = max(beta, v)
+                if v>= beta:
+                    return v
+                #compare score with beta and assign minimum value
+                alpha = max(alpha, v)
         return v
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
@@ -401,7 +401,6 @@ class AlphaBetaPlayer(IsolationPlayer):
                 testing.
         """
         
-
         # TODO: finish this function    
         legal_moves = game.get_legal_moves()
         if not legal_moves:
@@ -411,14 +410,16 @@ class AlphaBetaPlayer(IsolationPlayer):
         best_move = legal_moves[0]
         for m in legal_moves:
             if self.time_left() > self.TIMER_THRESHOLD:
-                v = self.min_value(game.forecast_move(m), alpha, beta, depth)
+                v = self.max_value(game.forecast_move(m), alpha, beta, depth)
         #print('m->', m, 'v->', v, 'best_score-> ', best_score)
                 if v > best_score:
                     best_score = v
                     best_move = m
+                """
                 else:
-                    best_move = best_move
+                    best_move
+                """
             else:
-                legal_moves[0]
+                best_move
         #print ('best move ->', best_move, self.time_left(), self.TIMER_THRESHOLD)
         return best_move
