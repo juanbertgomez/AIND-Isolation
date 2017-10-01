@@ -78,10 +78,9 @@ def custom_score_2(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    w, h = game.width / 2., game.height / 2.
-    y, x = game.get_player_location(player)
-    z, q = game.get_player_location(game.get_opponent(player))
-    return float((h - y)**2 + (w - q)**2)
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(own_moves - opp_moves*2)
 
 
 def custom_score_3(game, player):
