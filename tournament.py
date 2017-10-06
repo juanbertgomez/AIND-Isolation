@@ -150,6 +150,8 @@ def main():
     print("{:^74}".format("Playing Matches"))
     print("{:^74}".format("*************************"))
     play_matches(cpu_agents, test_agents, NUM_MATCHES)
+    
+
 
 
 if __name__ == "__main__":
