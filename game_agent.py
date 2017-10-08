@@ -285,7 +285,7 @@ class MinimaxPlayer(IsolationPlayer):
         for m in legal_moves:
             if self.time_left() < self.TIMER_THRESHOLD:
                 raise SearchTimeout()             
-            v = self.min_value(game.forecast_move(m), depth)
+            v = self.min_value(game.forecast_move(m), depth-1)
             if v > best_score:
                 best_score = v
                 best_move = m
@@ -447,7 +447,7 @@ class AlphaBetaPlayer(IsolationPlayer):
             if self.time_left() < self.TIMER_THRESHOLD:
                 raise SearchTimeout() 
             else:
-                v = self.min_value(game.forecast_move(m), depth, alpha, beta)
+                v = self.min_value(game.forecast_move(m), depth -1, alpha, beta)
                 if v > best_score:
                     best_score = v
                     best_move = m
